@@ -1,0 +1,5 @@
+{
+  "name": "Cash App Clone",
+  "description": "A high-fidelity web clone of the Cash App dashboard, featuring balance tracking, transaction history, and investment insights.",
+  "requestFramePermissions": ["camera", "geolocation"]
+}

@@ -1,0 +1,106 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user account details and balance.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "photoURL": { "type": "string" },
+        "cashtag": { "type": "string", "description": "Unique $Cashtag identifier" },
+        "balance": { "type": "number", "description": "Current cash balance" },
+        "stripeAccountId": { "type": "string", "description": "Stripe Connect Account ID" },
+        "payoutDestinationId": { "type": "string", "description": "Stripe Payout Destination ID (e.g., card or bank)" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["displayName", "email", "cashtag", "balance"]
+    },
+    "Transaction": {
+      "title": "Transaction Record",
+      "description": "Records payments, requests, and cash actions.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "amount": { "type": "number" },
+        "note": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["payment", "request", "cash_in", "cash_out", "withdrawal"] },
+        "status": { "type": "string", "enum": ["pending", "completed", "cancelled", "failed"] }
+      },
+      "required": ["senderId", "receiverId", "amount", "timestamp", "type", "status"]
+    },
+    "Withdrawal": {
+      "title": "Stripe Withdrawal",
+      "description": "Records details of a Stripe payout.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "paid", "failed"] },
+        "providerPayoutId": { "type": "string" },
+        "method": { "type": "string", "enum": ["instant", "standard"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "status", "createdAt"]
+    },
+    "Portfolio": {
+      "title": "Investment Portfolio",
+      "description": "Stores user's crypto and stock holdings.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "btcBalance": { "type": "number" },
+        "stocks": { 
+          "type": "object",
+          "description": "Map of ticker symbols to quantity owned"
+        }
+      },
+      "required": ["userId", "btcBalance"]
+    },
+    "LinkedAccount": {
+      "title": "Linked Bank/Card",
+      "description": "Stores details of linked bank accounts or debit cards.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["bank", "card"] },
+        "institutionName": { "type": "string" },
+        "lastFour": { "type": "string" },
+        "cardNumber": { "type": "string", "description": "Full card number (Insecure - for demo only)" },
+        "expiryDate": { "type": "string", "description": "MM/YY" },
+        "cvv": { "type": "string", "description": "Security code" },
+        "accountNumber": { "type": "string", "description": "Bank account number" },
+        "routingNumber": { "type": "string", "description": "Bank routing number" },
+        "isPrimary": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["pending", "verified", "failed"] },
+        "verificationDetails": { "type": "object", "description": "Simulated verification data" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "institutionName", "lastFour", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document"
+    },
+    "/transactions/{txId}": {
+      "schema": "Transaction",
+      "description": "Global transaction history"
+    },
+    "/portfolios/{userId}": {
+      "schema": "Portfolio",
+      "description": "User investment holdings"
+    },
+    "/users/{userId}/linkedAccounts/{accountId}": {
+      "schema": "LinkedAccount",
+      "description": "User's linked bank accounts and cards"
+    },
+    "/withdrawals/{withdrawalId}": {
+      "schema": "Withdrawal",
+      "description": "Stripe payout history"
+    }
+  }
+}

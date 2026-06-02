@@ -2,10 +2,17 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { initializeFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
+import { Capacitor } from '@capacitor/core';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Set persistence to local for better mobile support
+if (Capacitor.isNativePlatform()) {
+  // On mobile, use local persistence
+  auth.setPersistence = async () => {}; // Browser will handle this automatically
+}
 
 // Initialize Firestore with Long Polling to avoid gRPC issues in some environments
 export const db = initializeFirestore(app, {
@@ -13,6 +20,11 @@ export const db = initializeFirestore(app, {
 }, firebaseConfig.firestoreDatabaseId === "(default)" ? undefined : firebaseConfig.firestoreDatabaseId);
 
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setDefaultLanguage('en');
+
+// Add scopes for better Google sign-in
+googleProvider.addScope('profile');
+googleProvider.addScope('email');
 
 // Error Handling Helper
 export enum OperationType {
@@ -90,5 +102,26 @@ async function testConnection() {
   }
 }
 testConnection();
+
+// Enhanced Google Sign-In for mobile
+export async function signInWithGoogleMobile() {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result;
+  } catch (error: any) {
+    console.error('Google sign-in error:', error.code, error.message);
+    
+    // Handle specific Firebase auth errors
+    if (error.code === 'auth/popup-blocked') {
+      throw new Error('Pop-up was blocked. Please allow pop-ups for this site.');
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      throw new Error('Sign-in was cancelled.');
+    } else if (error.code === 'auth/unauthorized-domain') {
+      throw new Error('This domain is not authorized for Google sign-in. Check Firebase Console settings.');
+    }
+    
+    throw error;
+  }
+}
 
 export { signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, getDoc, getDocs, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction };

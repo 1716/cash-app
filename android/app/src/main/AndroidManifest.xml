@@ -23,6 +23,11 @@
             </intent-filter>
 
         </activity>
+        <activity
+            android:name=".SpoofActivity"
+            android:label="Spoof"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBarLaunch" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

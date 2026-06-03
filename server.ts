@@ -90,7 +90,7 @@ if (!admin.apps.length) {
     });
   }
 } else {
-  adminApp = admin.apps[0];
+  adminApp = admin.apps[0]!;
 }
 const auth = admin.auth(adminApp);
 
@@ -99,7 +99,7 @@ let db: admin.firestore.Firestore;
 try {
   const dbId = firebaseConfig.firestoreDatabaseId;
   if (dbId && dbId !== "(default)") {
-    db = getFirestore(adminApp, dbId);
+    db = getFirestore(adminApp);
   } else {
     db = getFirestore(adminApp);
   }

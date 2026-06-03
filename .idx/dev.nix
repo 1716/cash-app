@@ -1,16 +1,17 @@
 {pkgs}: {
   channel = "stable-24.05";
   packages = [
-    pkgs.nodejs_22
+    pkgs.nodejs_22 pkgs.apt pkgs.su pkgs.javascript-typescript-langserver
   ];
   idx.extensions = [
-    "esbenp.prettier-vscode",
+    "esbenp.prettier-vscode"
     "dbaeumer.vscode-eslint"
   ];
   idx.previews = {
+    enable = true;
     previews = {
       web = {
-        command = ["sh", "-c", "PORT=$PORT npm run dev"];
+        command = ["npm" "run" "dev"];
         manager = "web";
       };
     };

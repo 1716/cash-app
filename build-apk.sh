@@ -1,28 +1,31 @@
 #!/bin/bash
-# Build script for Cash App APK
 
 echo "🔨 Starting Cash App APK Build..."
 
-# Install dependencies
+# 1. Install Dependencies
 echo "📦 Installing npm dependencies..."
 npm install
 
-# Build the web app
+# 2. Build Web App
 echo "🏗️ Building web app..."
 npm run build
 
-# Sync Capacitor
+# 3. Sync with Capacitor
 echo "🔄 Syncing Capacitor..."
-npx cap sync
+npx cap sync android
 
-# Build Android APK (debug)
+# 4. Build Android APK
 echo "📱 Building Android APK (debug)..."
-npx cap build android
+export JAVA_HOME="/nix/store/5badkg3gmzg1c29akwglknkizfg6zj0g-openjdk-17.0.17+8"
+cd android && ./gradlew assembleDebug && cd ..
 
-echo "✅ Build complete!"
-echo ""
-echo "📍 APK Location: android/app/build/outputs/apk/debug/app-debug.apk"
-echo ""
-echo "To build release APK, run:"
-echo "  npm run build"
-echo "  npx cap build android --release"
+# 5. Success!
+echo "
+✅ Build complete!
+
+📍 APK Location: android/app/build/outputs/apk/debug/app-debug.apk
+
+To build release APK, run:
+  npm run build
+  npx cap build android --release
+"

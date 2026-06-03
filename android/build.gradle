@@ -24,6 +24,20 @@ allprojects {
     }
 }
 
+subprojects {
+    afterEvaluate{
+        if (project.hasProperty("android")){
+            android {
+                buildToolsVersion = "36.0.0"
+                compileOptions {
+                    sourceCompatibility = '17'
+                    targetCompatibility = '17'
+                }
+            }
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

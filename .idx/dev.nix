@@ -1,7 +1,7 @@
 {pkgs}: {
   channel = "stable-24.05";
   packages = [
-    pkgs.nodejs_22 pkgs.apt pkgs.su pkgs.javascript-typescript-langserver
+    pkgs.nodejs_22 pkgs.apt pkgs.su pkgs.javascript-typescript-langserver pkgs.openjdk
   ];
   idx.extensions = [
     "esbenp.prettier-vscode"

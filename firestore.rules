@@ -1,156 +1,18 @@
-rules_version = '2';
+rules_version='2'
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Global Admin Bypass
     match /{document=**} {
-      allow read, write: if request.auth.uid == 'system-admin';
-    }
-
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    //
-    // Collection: users
-    // Document ID: {userId}
-    // Fields:
-    //   - displayName: string (required)
-    //   - email: string (required, format: email)
-    //   - photoURL: string (optional)
-    //   - cashtag: string (required, unique)
-    //   - balance: number (required, >= 0)
-    //   - createdAt: timestamp (required)
-    //
-    // Collection: transactions
-    // Document ID: {txId}
-    // Fields:
-    //   - senderId: string (required)
-    //   - receiverId: string (required)
-    //   - amount: number (required, > 0)
-    //   - note: string (optional)
-    //   - timestamp: timestamp (required)
-    //   - type: string (required, enum: ['payment', 'request'])
-    //   - status: string (required, enum: ['pending', 'completed', 'cancelled'])
-    //
-    // Collection: portfolios
-    // Document ID: {userId}
-    // Fields:
-    //   - userId: string (required)
-    //   - btcBalance: number (required, >= 0)
-    //   - stocks: map (required)
-    //
-    // ===============================================================
-
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
-
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    function isAdmin() {
-      return isAuthenticated() &&
-        (request.auth.uid == 'system-admin' ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "chosen.bufford@gmail.com" && request.auth.token.email_verified == true));
-    }
-
-    function isValidEmail(email) {
-      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
-    }
-
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
-    }
-
-    // ===============================================================
-    // Domain Validators
-    // ===============================================================
-
-    function isValidUser(data) {
-      return hasOnlyAllowedFields(['displayName', 'email', 'photoURL', 'cashtag', 'balance', 'createdAt', 'role', 'stripeAccountId', 'payoutDestinationId']) &&
-             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() < 100 &&
-             isValidEmail(data.email) &&
-             data.cashtag is string && data.cashtag.matches("^\\$[a-zA-Z0-9_]{3,20}$") &&
-             data.balance is number && data.balance >= 0;
-    }
-
-    function isValidTransaction(data) {
-      return hasOnlyAllowedFields(['senderId', 'receiverId', 'amount', 'note', 'timestamp', 'type', 'status']) &&
-             data.senderId is string && data.receiverId is string &&
-             data.amount is number && data.amount > 0 &&
-             data.type in ['payment', 'request', 'cash_in', 'cash_out', 'withdrawal'] &&
-             data.status in ['pending', 'completed', 'cancelled', 'failed'];
-    }
-
-    function isValidWithdrawal(data) {
-      return hasOnlyAllowedFields(['userId', 'amount', 'status', 'providerPayoutId', 'method', 'createdAt']) &&
-             data.userId is string &&
-             data.amount is number && data.amount > 0 &&
-             data.status in ['pending', 'paid', 'failed'] &&
-             data.method in ['instant', 'standard'];
-    }
-
-    function isValidPortfolio(data) {
-      return hasOnlyAllowedFields(['userId', 'btcBalance', 'stocks']) &&
-             data.userId is string &&
-             data.btcBalance is number && data.btcBalance >= 0 &&
-             data.stocks is map;
-    }
-
-    function isValidLinkedAccount(data) {
-      return hasOnlyAllowedFields(['userId', 'type', 'institutionName', 'lastFour', 'cardNumber', 'expiryDate', 'cvv', 'accountNumber', 'routingNumber', 'isPrimary', 'status', 'verificationDetails', 'createdAt']) &&
-             data.userId is string &&
-             data.type in ['bank', 'card'] &&
-             data.institutionName is string && data.institutionName.size() > 0 &&
-             data.lastFour is string && data.lastFour.matches("^\\d{4}$") &&
-             data.status in ['pending', 'verified', 'failed'];
-    }
-
-    // ===============================================================
-    // Match Rules
-    // ===============================================================
-
-    match /users/{userId} {
-      allow get: if isAuthenticated(); // Allow getting any user doc (for cashtag display/search)
-      allow list: if isAuthenticated(); // Allow listing users (for search suggestions)
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
-      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role)
-                    || (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['balance']) && request.resource.data.balance > resource.data.balance && isValidUser(request.resource.data))
-                    || isAdmin();
-
-      match /linkedAccounts/{accountId} {
-        allow read: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidLinkedAccount(request.resource.data);
-        allow update: if isOwner(userId) && isValidLinkedAccount(request.resource.data);
-        allow delete: if isOwner(userId);
-      }
-    }
-
-    match /transactions/{txId} {
-      allow read: if isAuthenticated() && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId || isAdmin());
-      allow create: if isAuthenticated() && isValidTransaction(request.resource.data) && (request.auth.uid == request.resource.data.senderId || request.auth.uid == request.resource.data.receiverId || isAdmin());
-      allow update: if isAdmin(); // Transactions are generally immutable for users
-    }
-
-    match /portfolios/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && isValidPortfolio(request.resource.data);
-      allow update: if isOwner(userId) && isValidPortfolio(request.resource.data);
-    }
-
-    match /withdrawals/{withdrawalId} {
-      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
-      allow create: if isAdmin() || (isAuthenticated() && request.auth.uid == request.resource.data.userId && request.resource.data.status == 'pending' && !('providerPayoutId' in request.resource.data));
-      allow update: if isAdmin();
-    }
-
-    match /health/{docId} {
-      allow read, write: if true; // For connection testing
+      // This rule allows anyone with your database reference to view, edit,
+      // and delete all data in your database. It is useful for getting
+      // started, but it is configured to expire after 30 days because it
+      // leaves your app open to attackers. At that time, all client
+      // requests to your database will be denied.
+      //
+      // Make sure to write security rules for your app before that time, or
+      // else all client requests to your database will be denied until you
+      // update your rules.
+      allow read, write: if request.time < timestamp.date(2026, 7, 4);
     }
   }
 }

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch server.ts",
-    "build": "vite build",
+    "build:web": "vite build",
+    "build": "npm run build:web && bash build-apk.sh",
     "build:server": "tsc -p tsconfig.server.json",
     "preview": "vite preview",
     "clean": "rm -rf dist",

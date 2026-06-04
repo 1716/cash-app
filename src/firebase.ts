@@ -1,5 +1,6 @@
+
 import { initializeApp } from 'firebase/app';
-import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { initializeFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 import { Capacitor } from '@capacitor/core';
@@ -10,8 +11,7 @@ export const auth = getAuth(app);
 
 // Set persistence to local for better mobile support
 if (Capacitor.isNativePlatform()) {
-  // On mobile, use local persistence
-  auth.setPersistence = async () => {}; // Browser will handle this automatically
+  // On mobile, persistence is handled by the underlying SDK.
 }
 
 // Initialize Firestore with Long Polling to avoid gRPC issues in some environments
@@ -51,7 +51,6 @@ export interface FirestoreErrorInfo {
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const errorMessage = error instanceof Error ? error.message : String(error);
   
-  // Ignore benign "CANCELLED" or "idle stream" errors that often occur during normal operation
   if (errorMessage.includes('CANCELLED') || errorMessage.includes('Disconnecting idle stream')) {
     console.warn(`Firestore ${operationType} on ${path} was cancelled (benign):`, errorMessage);
     return;
@@ -96,4 +95,4 @@ async function testConnection() {
 }
 testConnection();
 
-export { signOut, onAuthStateChanged, doc, setDoc, getDoc, getDocs, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction };
+export { signOut, onAuthStateChanged, doc, setDoc, getDoc, getDocs, collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp, runTransaction, createUserWithEmailAndPassword, signInWithEmailAndPassword };

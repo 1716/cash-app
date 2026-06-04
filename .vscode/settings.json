@@ -1,4 +1,5 @@
 {
     "inlineChat.lineEmptyHint": true,
-    "android-studio-lite.sdkPath": "/home/user/cash-app/.idx"
+    "android-studio-lite.sdkPath": "/home/user/cash-app/.idx",
+    "IDX.aI.showChatInEditorTab": true
 }

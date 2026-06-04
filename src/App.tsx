@@ -40,6 +40,8 @@ import {
   onAuthStateChanged, 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   updateProfile,
   doc, 
   setDoc, 
@@ -153,6 +155,7 @@ function AuthenticationScreen() {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,6 +194,20 @@ function AuthenticationScreen() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      // The onAuthStateChanged listener in CashApp will handle profile creation
+    } catch (error: any) {
+      console.error("Google Sign-In error:", error);
+      toast.error("Failed to sign in with Google. Please try again.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 transition-all duration-500">
       <div className="w-full max-w-sm">
@@ -204,66 +221,93 @@ function AuthenticationScreen() {
           <p className="text-zinc-500">The simplest way to manage your money.</p>
         </div>
 
-        <form onSubmit={handleAuthAction} className="space-y-6">
-          <AnimatePresence>
-            {authMode === 'signup' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0, y: -20 }}
-                animate={{ opacity: 1, height: 'auto', y: 0 }}
-                exit={{ opacity: 0, height: 0, y: -20 }}
-                className="overflow-hidden"
-              >
-                <div className="relative">
-                   <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
-                   <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Full Name"
-                    required={authMode === 'signup'}
-                    className="w-full bg-zinc-900 border-2 border-zinc-800 text-white py-4 pl-12 pr-4 rounded-2xl outline-none focus:ring-2 ring-green-500/50 transition-all placeholder:text-zinc-500"
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <div className="space-y-4">
+          <form onSubmit={handleAuthAction} className="space-y-6">
+            <AnimatePresence>
+              {authMode === 'signup' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, y: -20 }}
+                  animate={{ opacity: 1, height: 'auto', y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -20 }}
+                  className="overflow-hidden"
+                >
+                  <div className="relative">
+                     <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+                     <input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Full Name"
+                      required={authMode === 'signup'}
+                      className="w-full bg-zinc-900 border-2 border-zinc-800 text-white py-4 pl-12 pr-4 rounded-2xl outline-none focus:ring-2 ring-green-500/50 transition-all placeholder:text-zinc-500"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email Address"
+                required
+                className="w-full bg-zinc-900 border-2 border-zinc-800 text-white py-4 pl-12 pr-4 rounded-2xl outline-none focus:ring-2 ring-green-500/50 transition-all placeholder:text-zinc-500"
+              />
+            </div>
+
+            <div className="relative">
+              <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                className="w-full bg-zinc-900 border-2 border-zinc-800 text-white py-4 pl-12 pr-4 rounded-2xl outline-none focus:ring-2 ring-green-500/50 transition-all placeholder:text-zinc-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || isGoogleLoading}
+              className="w-full bg-green-500 text-black py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-50 disabled:scale-100"
+            >
+              {isLoading ? (
+                <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              ) : (
+                authMode === 'signin' ? 'Sign In' : 'Sign Up'
+              )}
+            </button>
+          </form>
+
+          <div className="relative flex items-center justify-center my-6">
+            <div className="absolute inset-x-0 h-px bg-zinc-800" />
+            <span className="relative bg-black px-2 text-sm text-zinc-500">OR</span>
+          </div>
           
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email Address"
-              required
-              className="w-full bg-zinc-900 border-2 border-zinc-800 text-white py-4 pl-12 pr-4 rounded-2xl outline-none focus:ring-2 ring-green-500/50 transition-all placeholder:text-zinc-500"
-            />
-          </div>
-
-          <div className="relative">
-            <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              required
-              className="w-full bg-zinc-900 border-2 border-zinc-800 text-white py-4 pl-12 pr-4 rounded-2xl outline-none focus:ring-2 ring-green-500/50 transition-all placeholder:text-zinc-500"
-            />
-          </div>
-
           <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-green-500 text-black py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-50 disabled:scale-100"
+            onClick={handleGoogleSignIn}
+            disabled={isLoading || isGoogleLoading}
+            className="w-full bg-white text-black py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-50 disabled:scale-100"
           >
-            {isLoading ? (
+            {isGoogleLoading ? (
               <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
             ) : (
-              authMode === 'signin' ? 'Sign In' : 'Sign Up'
+              <>
+                <svg className="w-6 h-6" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.19,4.73C14.03,4.73 15.1,5.5 15.71,6.15L17.84,4.11C16.25,2.66 14.28,2 12.19,2C7.03,2 3,6.5 3,12C3,17.5 7.03,22 12.19,22C17.6,22 21.7,18.35 21.7,12.33C21.7,11.7 21.52,11.4 21.35,11.1Z"
+                  />
+                </svg>
+                Sign In with Google
+              </>
             )}
           </button>
-        </form>
+        </div>
 
         <p className="text-center text-zinc-500 mt-8">
           {authMode === 'signin' ? "Don't have an account?" : "Already have an account?"}

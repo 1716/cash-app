@@ -8,7 +8,7 @@ npm install
 
 # 2. Build Web App
 echo "🏗️ Building web app..."
-npm run build
+npm run build:web
 
 # 3. Sync with Capacitor
 echo "🔄 Syncing Capacitor..."
@@ -26,6 +26,6 @@ echo "
 📍 APK Location: android/app/build/outputs/apk/debug/app-debug.apk
 
 To build release APK, run:
-  npm run build
+  npm run build:web
   npx cap build android --release
 "

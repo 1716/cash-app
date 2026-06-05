@@ -1,0 +1,10 @@
+{
+  "auth": {
+    "providers": {
+      "googleSignIn": {
+        "supportEmail": "shonbufford06@gmail.com",
+        "oAuthBrandDisplayName": "Cash App"
+      }
+    }
+  }
+}

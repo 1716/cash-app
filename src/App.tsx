@@ -1,20 +1,11 @@
 import { useState } from "react";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "./firebase";
 import "./index.css";
 
 function App() {
-  const [user, setUser] = useState(null);
-
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      setUser(result.user);
-    } catch (error) {
-      console.error("Error during Google sign-in:", error);
-    }
-  };
+  const [user, setUser] = useState({
+    displayName: "Guest User",
+    photoURL: "/logo.svg",
+  });
 
   return (
     <div className="App">
@@ -33,7 +24,7 @@ function App() {
             <img src="/logo.svg" className="logo" alt="logo" />
             <h1>Welcome Back</h1>
             <p>The simplest way to manage your money.</p>
-            <button onClick={handleGoogleSignIn} className="google-sign-in-button">
+            <button className="google-sign-in-button">
               Sign In with Google
             </button>
           </div>

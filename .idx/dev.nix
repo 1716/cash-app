@@ -14,6 +14,10 @@
         command = ["npm" "run" "dev"];
         manager = "web";
       };
+      android = {
+        command = ["echo" "The APK is located at: android/app/build/outputs/apk/debug/app-debug.apk"];
+        manager = "terminal";
+      };
     };
   };
 }

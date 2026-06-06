@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "114857409662",
+    "project_id": "new-cashn",
+    "storage_bucket": "new-cashn.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:114857409662:android:87c160ac6a801917942c2f",
+        "android_client_info": {
+          "package_name": "com.cashapp.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2JfeBZomIEnEq3t9AGU3N9IsXo5NZxaw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -16,7 +16,6 @@ npx cap sync android
 
 # 4. Build Android APK
 echo "📱 Building Android APK (debug)..."
-export JAVA_HOME="/nix/store/5badkg3gmzg1c29akwglknkizfg6zj0g-openjdk-17.0.17+8"
 cd android && ./gradlew assembleDebug && cd ..
 
 # 5. Success!
